@@ -1,6 +1,7 @@
 const userModel = require('../Models/userSchema');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { getRecentChats } = require('../utils/aggrigation');
 
 const createUser = async (req, res) => {
     try {
@@ -50,10 +51,11 @@ const userLogin = async (req, res) => {
     }
 }
 
-const getAllusers = async (req, res, next) => {
+const getMyChats = async (req, res, next) => {
     try {
-        const allusers = await userModel.find()
-        return res.status(200).json({ message: "user get succesfully", allusers })
+        const userId = req.query.userId;;
+        const allChats = await getRecentChats(userId);
+        return res.status(200).json({ message: "user get succesfully", allChats })
     }
     catch (err) {
         return res.status(404).json({ message: err.message })
@@ -61,4 +63,4 @@ const getAllusers = async (req, res, next) => {
 }
 
 
-module.exports = { createUser, userLogin, getAllusers };
+module.exports = { createUser, userLogin, getMyChats };

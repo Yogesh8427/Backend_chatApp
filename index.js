@@ -12,6 +12,6 @@ connnectDb();
 app.use('/auth', userRoutes);
 app.use('/message', messageRoutes);
 initSocket(server);
-server.listen(3000, () => {
+server.listen(3000,'0.0.0.0',() => {
   console.log('Server running on http://localhost:3000');
 });

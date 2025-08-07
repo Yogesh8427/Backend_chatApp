@@ -1,4 +1,5 @@
 const Message = require('../Models/messageSchema');
+const { findUser } = require('../utils/aggrigation');
 
 const getUsermessgae = async (req, res) => {
   try {
@@ -16,4 +17,14 @@ const getUsermessgae = async (req, res) => {
   }
 };
 
-module.exports = { getUsermessgae };
+const searchUser = async (req, res) => {
+  try {
+    const { userId, search } = req.query;
+    const result= await findUser(userId,search);
+    return res.status(200).json({ success: true, result });
+  } catch (error) {
+ return res.status(404).json({ message: err.message })
+  }
+
+}
+module.exports = { getUsermessgae, searchUser };
