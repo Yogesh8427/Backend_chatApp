@@ -13,7 +13,6 @@ function initSocket(server) {
     // Handle socket connections
     io.on('connection', (socket) => {
         console.log('🟢 New user connected:', socket.id);
-
         // Join a room based on user ID
         socket.on('join', ({ userId, roomId }) => {
             console.log(`User ${userId} joined ${roomId}`);
@@ -23,10 +22,10 @@ function initSocket(server) {
             }
             console.log('Active users:', activeUsers);
         });
-        // Join a room based on user ID
+        // leave a room based on user ID
         socket.on('leave_room', ({ userId, roomId }) => {
             console.log(`User ${userId} leaved ${roomId}`);
-            socket.join(roomId);
+            socket.leave(roomId);
             delete activeUsers[userId];
             console.log('Active users:', activeUsers);
         });
