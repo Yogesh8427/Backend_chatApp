@@ -1,6 +1,10 @@
 const { Server } = require('socket.io');
 const Message = require('../Models/messageSchema');
+const userModal = require('../Models/userSchema');
 const { getRecentChats } = require('../utils/aggrigation');
+const { sendNotification } = require('../utils/Notification');
+
+const activeUsers = {};
 function initSocket(server) {
     const io = new Server(server, {
         cors: { origin: '*' },
@@ -11,9 +15,20 @@ function initSocket(server) {
         console.log('🟢 New user connected:', socket.id);
 
         // Join a room based on user ID
-        socket.on('join', (roomId) => {
-            console.log(`User ${roomId} joined`);
+        socket.on('join', ({ userId, roomId }) => {
+            console.log(`User ${userId} joined ${roomId}`);
             socket.join(roomId);
+            if (!!userId) {
+                activeUsers[userId] = roomId;
+            }
+            console.log('Active users:', activeUsers);
+        });
+        // Join a room based on user ID
+        socket.on('leave_room', ({ userId, roomId }) => {
+            console.log(`User ${userId} leaved ${roomId}`);
+            socket.join(roomId);
+            delete activeUsers[userId];
+            console.log('Active users:', activeUsers);
         });
 
         // Handle message sending
@@ -34,7 +49,11 @@ function initSocket(server) {
                 // Emit updated recent chats to both
                 io.to(sender).emit('recent_chats', senderChats);
                 io.to(receiver).emit('recent_chats', receiverChats);
-
+                if (activeUsers[receiver] != roomId && sender != receiver) {
+                    const receiverToken = await userModal.findById(receiver, { deviceInfo: 1 });
+                    const senderName = await userModal.findById(sender, { name: 1 });
+                    if (!!receiverToken) sendNotification(senderName.name, message, receiverToken.token);
+                }
             } catch (err) {
                 console.error('Socket error:', err.message);
                 socket.emit('error_message', 'Internal error.');
