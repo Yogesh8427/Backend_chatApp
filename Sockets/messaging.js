@@ -20,14 +20,22 @@ function initSocket(server) {
             if (!!userId) {
                 activeUsers[userId] = roomId;
             }
-            console.log('Active users:', activeUsers);
+            const usersInRoom = Object.entries(activeUsers)
+                .filter(([_, room_Id]) => room_Id === roomId)
+                .map(([userId]) => userId);
+            io.to(roomId).emit('active_user', usersInRoom);
         });
         // leave a room based on user ID
         socket.on('leave_room', ({ userId, roomId }) => {
             console.log(`User ${userId} leaved ${roomId}`);
             socket.leave(roomId);
-            delete activeUsers[userId];
-            console.log('Active users:', activeUsers);
+            if (!!userId) {
+                delete activeUsers[userId];
+            }
+            const usersInRoom = Object.entries(activeUsers)
+                .filter(([_, room_Id]) => room_Id === roomId)
+                .map(([userId]) => userId);
+            io.to(roomId).emit('active_user', usersInRoom);
         });
 
         // Handle message sending
@@ -59,6 +67,13 @@ function initSocket(server) {
             }
         });
 
+        //typing event
+        socket.on("typing", ({ roomId, userId }) => {
+            io.to(roomId).emit("typing_status", { userId, isTyping: true });
+        });
+        socket.on("stop_typing", ({ roomId, userId }) => {
+            io.to(roomId).emit("typing_status", { userId, isTyping: false });
+        });
         // Handle user disconnection
         socket.on('disconnect', () => {
             console.log('🔴 User disconnected:', socket.id);
