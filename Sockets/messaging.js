@@ -15,7 +15,6 @@ function initSocket(server) {
         console.log('🟢 New user connected:', socket.id);
         // Join a room based on user ID
         socket.on('join', ({ userId, roomId }) => {
-            console.log(`User ${userId} joined ${roomId}`);
             socket.join(roomId);
             if (!!userId) {
                 activeUsers[userId] = roomId;
@@ -27,7 +26,6 @@ function initSocket(server) {
         });
         // leave a room based on user ID
         socket.on('leave_room', ({ userId, roomId }) => {
-            console.log(`User ${userId} leaved ${roomId}`);
             socket.leave(roomId);
             if (!!userId) {
                 delete activeUsers[userId];
@@ -43,11 +41,11 @@ function initSocket(server) {
             const { sender, receiver, message } = data;
             try {
                 const roomId = [sender, receiver].sort().join('_');
-                const newMsg = new Message({ roomId, sender, receiver, message });
+                const newMsg = new Message({ roomId, sender, receiver, message, isRead: false });
                 await newMsg.save();
 
                 // Emit the message to the receiver's room
-                socket.to(roomId).emit('receive_message', newMsg);
+                io.to(roomId).emit('receive_message', newMsg);
 
                 // Get updated recent chats for both sender and receiver
                 const senderChats = await getRecentChats(sender);
@@ -73,6 +71,24 @@ function initSocket(server) {
         });
         socket.on("stop_typing", ({ roomId, userId }) => {
             io.to(roomId).emit("typing_status", { userId, isTyping: false });
+        });
+
+        // When user reads a message
+        socket.on("mark_as_read", async ({ roomId, userId, messageId }) => {
+            try {
+                const msg = await Message.findById(messageId);
+                if (msg && !msg.isRead) {
+                    msg.isRead = true;
+                    await msg.save();
+                    // Notify everyone in the room with updated read count
+                    io.to(roomId).emit("read_update", {
+                        messageId: msg._id,
+                        isRead: true,
+                    });
+                }
+            } catch (err) {
+                console.error("mark_as_read error:", err.message);
+            }
         });
         // Handle user disconnection
         socket.on('disconnect', () => {

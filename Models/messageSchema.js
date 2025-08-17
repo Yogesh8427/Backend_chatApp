@@ -9,5 +9,6 @@ const messageSchema = new mongoose.Schema({
     receiver: String,
     message: String,
     timestamp: { type: Date, default: Date.now },
+    isRead: Boolean 
 });
 module.exports = mongoose.model('Message', messageSchema);
