@@ -19,7 +19,21 @@ const getRecentChats = async (userId) => {
                 lastMessage: { $first: "$message" },
                 sender: { $first: "$sender" },
                 receiver: { $first: "$receiver" },
-                timestamp: { $first: "$timestamp" }
+                timestamp: { $first: "$timestamp" },
+                unreadCount: {
+                    $sum: {
+                        $cond: [
+                            { 
+                                $and: [
+                                    { $eq: ["$receiver", userId] }, // message belongs to me
+                                    { $eq: ["$isRead", false] }     // and not read
+                                ] 
+                            }, 
+                            1, 
+                            0
+                        ]
+                    }
+                }
             }
         },
         {
@@ -57,6 +71,7 @@ const getRecentChats = async (userId) => {
                 roomId: "$_id",
                 lastMessage: 1,
                 timestamp: 1,
+                unreadCount: 1,
                 user: {
                     _id: "$userDetails._id",
                     name: "$userDetails.name",
@@ -68,7 +83,6 @@ const getRecentChats = async (userId) => {
             $sort: { timestamp: -1 }
         }
     ]);
-
     return recentChats;
 };
 const findUser = async (userId, search) => {

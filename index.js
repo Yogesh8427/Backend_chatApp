@@ -3,7 +3,7 @@ const connnectDb = require('./Config/db');
 const cors = require('cors');
 const http = require('http');
 const { userRoutes ,messageRoutes} = require('./Routes/rootRoute');
-const {initSocket} = require('./Sockets/messaging')
+const {initSocket} = require('./Sockets/index');
 const app = express();
 const server = http.createServer(app);
 app.use(cors());

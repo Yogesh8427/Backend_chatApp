@@ -57,7 +57,8 @@ function initSocket(server) {
                 if (activeUsers[receiver] != roomId && sender != receiver) {
                     const receiverToken = await userModal.findById(receiver, { deviceInfo: 1 });
                     const senderName = await userModal.findById(sender, { name: 1 });
-                    if (!!receiverToken) sendNotification(senderName.name, message, receiverToken.token);
+                    if (!!receiverToken?.deviceInfo?.fcmToken)
+                        sendNotification(senderName.name, message, receiverToken?.deviceInfo?.fcmToken);
                 }
             } catch (err) {
                 console.error('Socket error:', err.message);
@@ -85,6 +86,8 @@ function initSocket(server) {
                         messageId: msg._id,
                         isRead: true,
                     });
+                    const receiverChats = await getRecentChats(userId);
+                    io.to(userId).emit('recent_chats', receiverChats);
                 }
             } catch (err) {
                 console.error("mark_as_read error:", err.message);
