@@ -53,8 +53,8 @@ const userLogin = async (req, res) => {
 
 const getMyChats = async (req, res, next) => {
     try {
-        const userId = req.query.userId;;
-        const allChats = await getRecentChats(userId);
+        const { userId, pageNo } = req.query;;
+        const allChats = await getRecentChats(userId, pageNo);
         return res.status(200).json({ message: "user get succesfully", allChats })
     }
     catch (err) {

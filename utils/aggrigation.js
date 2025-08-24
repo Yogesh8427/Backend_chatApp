@@ -1,18 +1,15 @@
 const Message = require('../Models/messageSchema');
 const userModel = require('../Models/userSchema');
-const getRecentChats = async (userId) => {
-    const recentChats = await Message.aggregate([
+const getRecentChats = async (userId, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const result = await Message.aggregate([
         {
             $match: {
-                $or: [
-                    { sender: userId },
-                    { receiver: userId }
-                ]
+                $or: [{ sender: userId }, { receiver: userId }]
             }
         },
-        {
-            $sort: { timestamp: -1 }
-        },
+        { $sort: { timestamp: -1 } },
         {
             $group: {
                 _id: "$roomId",
@@ -23,13 +20,13 @@ const getRecentChats = async (userId) => {
                 unreadCount: {
                     $sum: {
                         $cond: [
-                            { 
+                            {
                                 $and: [
-                                    { $eq: ["$receiver", userId] }, // message belongs to me
-                                    { $eq: ["$isRead", false] }     // and not read
-                                ] 
-                            }, 
-                            1, 
+                                    { $eq: ["$receiver", userId] },
+                                    { $eq: ["$isRead", false] }
+                                ]
+                            },
+                            1,
                             0
                         ]
                     }
@@ -63,9 +60,7 @@ const getRecentChats = async (userId) => {
                 as: "userDetails"
             }
         },
-        {
-            $unwind: "$userDetails"
-        },
+        { $unwind: "$userDetails" },
         {
             $project: {
                 roomId: "$_id",
@@ -79,12 +74,22 @@ const getRecentChats = async (userId) => {
                 }
             }
         },
+        { $sort: { timestamp: -1 } },
         {
-            $sort: { timestamp: -1 }
+            $facet: {
+                metadata: [{ $count: "total" }],  // total count of rooms
+                data: [{ $skip: skip }, { $limit: limit }] // paginated data
+            }
         }
     ]);
-    return recentChats;
+
+    return {
+        total: result[0].metadata[0]?.total || 0,
+        totalPages: Math.ceil((result[0].metadata[0]?.total || 0) / limit),
+        chats: result[0].data
+    };
 };
+
 const findUser = async (userId, search) => {
     // Step 1: Find all users matching the search
     const matchingUsers = await userModel.find({
