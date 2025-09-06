@@ -1,8 +1,8 @@
 const { Router } = require('express');
-const {authenticateJwt}= require("../middleware/authenticateUser.js")
 const router = Router();
-const { createUser, userLogin,getMyChats} = require('../Controllers/userController');
+const { createUser, userLogin } = require('../Controllers/userController');
+const { authenticateJwt } = require("../middleware/authenticateUser.js")
 router.post('/signup', createUser);
 router.post('/login', userLogin);
-router.get('/myChats', authenticateJwt,getMyChats);
+router.get('/logout', authenticateJwt, () => { });
 module.exports = router;

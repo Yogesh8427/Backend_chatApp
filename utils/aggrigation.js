@@ -96,11 +96,16 @@ const findUser = async (userId, search) => {
         name: { $regex: search, $options: 'i' },
     });
 
-    // Step 2: Aggregate messages involving userId
+    // Step 2: Get all recent chats
     const recentChats = await getRecentChats(userId);
 
-    // Step 3: Include matched users who don't have any chat yet
-    const recentUserIds = recentChats.map(chat => chat.user._id.toString());
+    // Step 3: Filter recent chats to include only those matching the search
+    const filteredRecentChats = recentChats?.chats?.filter(chat =>
+        chat.user.name.toLowerCase().includes(search.toLowerCase())
+    ) || [];
+
+    // Step 4: Add matched users who are not in filteredRecentChats
+    const recentUserIds = filteredRecentChats.map(chat => chat.user._id.toString());
     const remainingUsers = matchingUsers
         .filter(u => !recentUserIds.includes(u._id.toString()))
         .map(u => ({
@@ -114,6 +119,6 @@ const findUser = async (userId, search) => {
             }
         }));
 
-    return [...recentChats, ...remainingUsers];
+    return [...filteredRecentChats, ...remainingUsers];
 };
 module.exports = { getRecentChats, findUser };
