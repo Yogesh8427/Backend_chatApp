@@ -7,8 +7,10 @@ const { getActiveRoom } = require("../utils/activeUsers");
 function messageHandler(io, socket) {
     socket.on("send_message", async ({ sender, receiver, message }) => {
         try {
+            console.log("working")
             const roomId = [sender, receiver].sort().join("_");
             const newMsg = new Message({ roomId, sender, receiver, message, isRead: false });
+            console.log(newMsg,"hhhhh")
             await newMsg.save();
 
             io.to(roomId).emit("receive_message", newMsg);
