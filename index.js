@@ -23,6 +23,6 @@ app.use('/message', messageRoutes);
 // Initialize WebSocket
 initSocket(server);
 
-server.listen(process.env.Port, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${process.env.Port}`);
+server.listen(process.env.PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://localhost:${process.env.PORT}`);
 });

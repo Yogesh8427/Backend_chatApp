@@ -1,5 +1,5 @@
 const Message = require('../Models/messageSchema');
-const { findUser } = require('../utils/aggrigation');
+const { findUser, getRecentChats } = require('../utils/aggrigation');
 
 const getUserMessage = async (req, res) => {
   try {
@@ -8,7 +8,6 @@ const getUserMessage = async (req, res) => {
     if (!roomId) {
       return res.status(400).json({ message: "roomId is required" });
     }
-    //hloooooooooooooo
     const pageNumber = parseInt(page);
     const pageSize = parseInt(limit);
     const skip = (pageNumber - 1) * pageSize;
@@ -42,4 +41,15 @@ const searchUser = async (req, res) => {
   }
 
 }
-module.exports = { getUserMessage, searchUser };
+
+const getMyChats = async (req, res, next) => {
+  try {
+    const { userId, pageNo } = req.query;;
+    const allChats = await getRecentChats(userId, pageNo);
+    return res.status(200).json({ message: "user get succesfully", allChats })
+  }
+  catch (err) {
+    return res.status(404).json({ message: err.message })
+  }
+}
+module.exports = { getUserMessage, searchUser, getMyChats };

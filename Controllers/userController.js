@@ -1,12 +1,11 @@
 const userModel = require('../Models/userSchema');
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { getRecentChats } = require('../utils/aggrigation');
+const { generateToken } = require('../utils/helper');
 
 const createUser = async (req, res) => {
     try {
         const { name, email, password, deviceInfo } = req.body;
-        if (!name || !email || !password ) {
+        if (!name || !email || !password || !deviceInfo) {
             return res.status(400).json({ message: "invalid payload" });
         }
         const hashesdPassword = await bcrypt.hash(password, 10)
@@ -20,7 +19,16 @@ const createUser = async (req, res) => {
             password: hashesdPassword,
             deviceInfo,
         })
-        return res.status(201).json({ message: "user created sucessfully", user })
+
+        const token = generateToken(user);
+        
+        const updatedUser = await userModel.findByIdAndUpdate(
+            user._id,
+            { $set: { token } },
+            { new: true, select: { password: 0, deviceInfo: 0 } }
+        );
+
+        return res.status(201).json({ message: "user created sucessfully", data: updatedUser })
     }
     catch (err) {
         console.log(err);
@@ -42,8 +50,11 @@ const userLogin = async (req, res) => {
         if (!matchedpassword) {
             return res.status(400).json({ message: "please enter email and password" })
         }
-        const token = jwt.sign({ email: user.email, userid: user.id }, "Nikhil", { expiresIn: "1h" });
-        const updateduser = await userModel.findByIdAndUpdate(user.id, { $set: { token, deviceInfo } }, { new: true, select: { password: 0, deviceInfo: 0 } });
+        const token = generateToken(user);
+        const updateduser = await userModel.findByIdAndUpdate(user.id,
+            { $set: { token, deviceInfo } },
+            { new: true, select: { password: 0, deviceInfo: 0 } });
+
         return res.status(200).json({ message: "login succesful", data: updateduser })
     }
     catch (err) {
@@ -51,16 +62,4 @@ const userLogin = async (req, res) => {
     }
 }
 
-const getMyChats = async (req, res, next) => {
-    try {
-        const { userId, pageNo } = req.query;;
-        const allChats = await getRecentChats(userId, pageNo);
-        return res.status(200).json({ message: "user get succesfully", allChats })
-    }
-    catch (err) {
-        return res.status(404).json({ message: err.message })
-    }
-}
-
-
-module.exports = { createUser, userLogin, getMyChats };
+module.exports = { createUser, userLogin };
