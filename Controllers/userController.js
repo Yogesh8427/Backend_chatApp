@@ -6,7 +6,7 @@ const { getRecentChats } = require('../utils/aggrigation');
 const createUser = async (req, res) => {
     try {
         const { name, email, password, deviceInfo } = req.body;
-        if (!name || !email || !password || !deviceInfo) {
+        if (!name || !email || !password ) {
             return res.status(400).json({ message: "invalid payload" });
         }
         const hashesdPassword = await bcrypt.hash(password, 10)

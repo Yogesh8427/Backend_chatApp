@@ -1,0 +1,28 @@
+
+const userModel= require("../Models/userSchema")
+const JWT= require("jsonwebtoken")
+
+const authenticateJwt= async(req,res,next)=>{
+    try{
+    const token= req.headers['authorization']?.split(' ')[1];
+    if(!token){
+        return res.status(404).json({message:"Please login first"})
+    }
+
+    const decodedata= JWT.verify(token,"Nikhil")
+    const{userid}=decodedata
+    const user= await userModel.findById(userid)
+    console.log(user)
+    if(!user){
+        return res.status(404).json({message:"no user found"})
+    }
+    req.user= user
+ next()
+
+
+    }
+    catch(err){
+        console.log(err)
+    }
+}
+module.exports={authenticateJwt}
