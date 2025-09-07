@@ -1,6 +1,7 @@
 
 const userModel = require("../Models/userSchema")
 const JWT = require("jsonwebtoken")
+const admin = require("../firebase");
 
 const authenticateJwt = async (req, res, next) => {
     try {
@@ -8,7 +9,7 @@ const authenticateJwt = async (req, res, next) => {
         if (!token) {
             return res.status(404).json({ message: "Please login first" })
         }
-        const decodedata = JWT.verify(token,process.env.JWTSECRET)
+        const decodedata = JWT.verify(token, process.env.JWTSECRET)
         const { userid } = decodedata
         const user = await userModel.findById(userid)
         if (!user) {
@@ -21,4 +22,21 @@ const authenticateJwt = async (req, res, next) => {
         console.log(err)
     }
 }
-module.exports = { authenticateJwt }
+const verifyGoogleUserLogin = async (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).json({ message: "Missing or invalid Authorization header" });
+        }
+        const idToken = authHeader.split(" ")[1];
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        req.firebaseUser = decodedToken;
+        next();
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(400).json({ message: err.message || "internal Server Error" })
+    }
+}
+
+module.exports = { authenticateJwt, verifyGoogleUserLogin }
