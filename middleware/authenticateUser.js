@@ -22,7 +22,7 @@ const authenticateJwt = async (req, res, next) => {
         console.log(err)
     }
 }
-const verifyGoogleUserLogin = async (req, res, next) => {
+const verifySocialLogin = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
         if (!authHeader) {
@@ -39,4 +39,4 @@ const verifyGoogleUserLogin = async (req, res, next) => {
     }
 }
 
-module.exports = { authenticateJwt, verifyGoogleUserLogin }
+module.exports = { authenticateJwt, verifySocialLogin }
