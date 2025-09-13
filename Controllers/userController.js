@@ -62,6 +62,38 @@ const userLogin = async (req, res) => {
     }
 }
 
+
+const editUser= async(req,res)=>{
+    try{
+        const loginUser= req.user._id
+
+      const {name}= req.body
+      
+          let imageUrl = null;
+    if (req.file) {
+      
+      imageUrl = `http://localhost:5055/uploads/${req.file.filename}`;
+    }
+
+        const user= await userModel.findByIdAndUpdate(loginUser,{
+            name:name,
+            image:imageUrl
+
+
+        },{new:true})
+
+        return res.status(200).json({message:"userUpdated succesfully",user})
+
+
+
+    }
+    catch(err){
+        console.log(err)
+        return res.status(400).json({message:err.message||"Internal server error"})
+    }
+}
+
+
 const socialLogin = async (req, res) => {
     try {
         const userdata = req.firebaseUser;
@@ -93,4 +125,27 @@ const socialLogin = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-module.exports = { createUser, userLogin, socialLogin };
+const logout= async (req,res)=>{
+    try{
+        const loginuser= req.user
+        const user = await userModel.findByIdAndUpdate(loginuser._id,{
+         token:null,
+         deviceInfo:null
+ 
+        },{new:true})
+   
+             
+              return res.status(200).json({messgae:"logout succesfully"})
+
+
+    }
+    catch(err){
+        console.log(err)
+           return res.status(400).json({message:err.message||"Internal server error"})
+    }
+}
+
+
+
+module.exports = { createUser, userLogin,editUser,logout,socialLogin };
+
