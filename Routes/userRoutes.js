@@ -12,3 +12,4 @@ router.post("/edituser",authenticateJwt,upload.single("image"),editUser)
 router.put('/logout', authenticateJwt, logout);
 module.exports = router;
 
+
