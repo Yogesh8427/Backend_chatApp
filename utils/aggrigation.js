@@ -115,7 +115,8 @@ const findUser = async (userId, search) => {
             user: {
                 _id: u._id,
                 name: u.name,
-                email: u.email
+                email: u.email,
+                image:u.image
             }
         }));
 

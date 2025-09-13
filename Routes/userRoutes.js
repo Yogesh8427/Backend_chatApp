@@ -2,9 +2,9 @@
 const { Router } = require('express');
 const {upload}= require("../middleware/multer.js")
 const router = Router();
-const { createUser, userLogin,editUser, logout } = require('../Controllers/userController');
-const { authenticateJwt } = require("../middleware/authenticateUser.js");
-const { verifyUSerLogin } = require('../middleware/verifyLogin.js');
+const { createUser, userLogin, socialLogin } = require('../Controllers/userController');
+const { authenticateJwt, verifySocialLogin } = require("../middleware/authenticateUser.js")
+router.post('/socialSignup', verifySocialLogin, socialLogin);
 router.post('/signup', createUser);
 router.post('/login', userLogin);
 router.post("/social-login",verifyUSerLogin)
