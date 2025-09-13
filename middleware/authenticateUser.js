@@ -23,20 +23,6 @@ const authenticateJwt = async (req, res, next) => {
     }
 }
 const verifySocialLogin = async (req, res, next) => {
-    try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) {
-            return res.status(401).json({ message: "Missing or invalid Authorization header" });
-        }
-        const idToken = authHeader.split(" ")[1];
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        req.firebaseUser = decodedToken;
-        next();
-    }
-    catch (err) {
-        console.log(err)
-        return res.status(400).json({ message: err.message || "internal Server Error" })
-    }
 }
 
 module.exports = { authenticateJwt, verifySocialLogin }

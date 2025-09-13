@@ -94,60 +94,6 @@ const editUser= async(req,res)=>{
 }
 
 
-const SocialLogin= async(req,res)=>{
-    try{
- const userdata=  req.firebaseUser
-
-    const {email,image,deviceInfo}= userdata
-     const user= await userModel.findOne({email})
-             const token = generateToken(user);
-     if(!user){
-      const createdUser=  await userModel.create({
-            email:email,
-            image:image,
-            deviceinfo:deviceinfo
-
-        })
-          const token = generateToken(createdUser);
-             const updatedUser = await userModel.findByIdAndUpdate(
-           createdUser._id,
-            { $set: { token } },
-            { new: true, select: { password: 0, deviceInfo: 0 } }
-        );
-     }
-
-
-
-    }
-    catch(err){
-        console.log(err)
-         return res.status(404).json({ message: err.message })
-    }
-}
-
-const logout= async (req,res)=>{
-    try{
-        const loginuser= req.user
-        const user = await userModel.findByIdAndUpdate(loginuser._id,{
-         token:null,
-         deviceInfo:null
- 
-        },{new:true})
-   
-             
-              return res.status(200).json({messgae:"logout succesfully"})
-
-
-    }
-    catch(err){
-        console.log(err)
-           return res.status(400).json({message:err.message||"Internal server error"})
-    }
-}
-
-
-
-module.exports = { createUser, userLogin,editUser,logout };
 const socialLogin = async (req, res) => {
     try {
         const userdata = req.firebaseUser;
@@ -179,4 +125,27 @@ const socialLogin = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-module.exports = { createUser, userLogin, socialLogin };
+const logout= async (req,res)=>{
+    try{
+        const loginuser= req.user
+        const user = await userModel.findByIdAndUpdate(loginuser._id,{
+         token:null,
+         deviceInfo:null
+ 
+        },{new:true})
+   
+             
+              return res.status(200).json({messgae:"logout succesfully"})
+
+
+    }
+    catch(err){
+        console.log(err)
+           return res.status(400).json({message:err.message||"Internal server error"})
+    }
+}
+
+
+
+module.exports = { createUser, userLogin,editUser,logout,socialLogin };
+
