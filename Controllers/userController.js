@@ -1,6 +1,7 @@
 const userModel = require('../Models/userSchema');
 const bcrypt = require("bcrypt");
 const { generateToken } = require('../utils/helper');
+const cloudinary= require("../middleware/cloudinary")
 
 const createUser = async (req, res) => {
     try {
@@ -63,20 +64,34 @@ const userLogin = async (req, res) => {
 }
 
 
-const editUser = async (req, res) => {
-    try {
-        const loginUser = req.user._id
 
-        const { name } = req.body
+const editUser= async(req,res)=>{
+    try{
+        const loginUser= req.user._id
 
-        let imageUrl = null;
-        if (req.file) {
+      const {name,password,confirm_password}= req.body
+      
+          let imageUrl = null;
+    if (req.file) {
+            newImage = req.file.path;
 
-            imageUrl = `http://localhost:5055/uploads/${req.file.filename}`;
-        }
-        const user = await userModel.findByIdAndUpdate(loginUser, {
-            name: name,
-            image: imageUrl
+      const result = await cloudinary.uploader.upload(newImage);
+      imageUrl = result.secure_url;
+
+    
+    }
+
+    if(password!==confirm_password){
+        return res.status(400).json({message:"Password and confirfpasswors should be same"})
+    }
+              const hashesdPassword = await bcrypt.hash(password, 10)
+
+        const user= await userModel.findByIdAndUpdate(loginUser,{
+            name:name,
+            image:imageUrl,
+            password:hashesdPassword
+
+
 
         }, { new: true })
 
