@@ -63,33 +63,29 @@ const userLogin = async (req, res) => {
 }
 
 
-const editUser= async(req,res)=>{
-    try{
-        const loginUser= req.user._id
+const editUser = async (req, res) => {
+    try {
+        const loginUser = req.user._id
 
-      const {name}= req.body
-      
-          let imageUrl = null;
-    if (req.file) {
-      
-      imageUrl = `http://localhost:5055/uploads/${req.file.filename}`;
-    }
+        const { name } = req.body
 
-        const user= await userModel.findByIdAndUpdate(loginUser,{
-            name:name,
-            image:imageUrl
+        let imageUrl = null;
+        if (req.file) {
 
+            imageUrl = `http://localhost:5055/uploads/${req.file.filename}`;
+        }
+        const user = await userModel.findByIdAndUpdate(loginUser, {
+            name: name,
+            image: imageUrl
 
-        },{new:true})
+        }, { new: true })
 
-        return res.status(200).json({message:"userUpdated succesfully",user})
-
-
+        return res.status(200).json({ message: "userUpdated succesfully", user })
 
     }
-    catch(err){
+    catch (err) {
         console.log(err)
-        return res.status(400).json({message:err.message||"Internal server error"})
+        return res.status(400).json({ message: err.message || "Internal server error" })
     }
 }
 
@@ -115,37 +111,29 @@ const socialLogin = async (req, res) => {
             user = await userModel.create({ name, email, image: picture, deviceInfo, password: null });
             token = generateToken(user);
         }
-
         const updateduser = await userModel.findByIdAndUpdate(user._id, { $set: { token } },
             { new: true, select: { password: 0, deviceInfo: 0 } });
-
         return res.status(200).json({ success: true, message: "Login successful", data: updateduser });
     } catch (err) {
         console.error("SocialLogin Error:", err);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-const logout= async (req,res)=>{
-    try{
-        const loginuser= req.user
-        const user = await userModel.findByIdAndUpdate(loginuser._id,{
-         token:null,
-         deviceInfo:null
- 
-        },{new:true})
-   
-             
-              return res.status(200).json({messgae:"logout succesfully"})
-
-
+const logout = async (req, res) => {
+    try {
+        const loginuser = req.user
+        const user = await userModel.findByIdAndUpdate(loginuser._id, {
+            token: null,
+            deviceInfo: null
+        }, { new: true })
+        return res.status(200).json({ messgae: "logout succesfully" })
     }
-    catch(err){
+    catch (err) {
         console.log(err)
-           return res.status(400).json({message:err.message||"Internal server error"})
+        return res.status(400).json({ message: err.message || "Internal server error" })
     }
 }
+  
 
-
-
-module.exports = { createUser, userLogin,editUser,logout,socialLogin };
+module.exports = { createUser, userLogin, editUser, logout, socialLogin };
 

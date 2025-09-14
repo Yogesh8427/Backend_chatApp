@@ -7,7 +7,6 @@ const { authenticateJwt, verifySocialLogin } = require("../middleware/authentica
 router.post('/socialSignup', verifySocialLogin, socialLogin);
 router.post('/signup', createUser);
 router.post('/login', userLogin);
-// router.post("/social-login",verifyUSerLogin)
 router.post("/edituser",authenticateJwt,upload.single("image"),editUser)
 router.put('/logout', authenticateJwt, logout);
 module.exports = router;
