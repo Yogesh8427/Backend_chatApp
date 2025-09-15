@@ -1,7 +1,8 @@
 const userModel = require('../Models/userSchema');
 const bcrypt = require("bcrypt");
 const { generateToken } = require('../utils/helper');
-const cloudinary= require("../middleware/cloudinary")
+const cloudinary = require("../middleware/cloudinary")
+const fs = require("fs");
 
 const createUser = async (req, res) => {
     try {
@@ -40,6 +41,7 @@ const createUser = async (req, res) => {
 const userLogin = async (req, res) => {
     try {
         const { email, password, deviceInfo } = req.body
+        console.log(req.body, "data==>", !email, !password)
         if (!email || !password) {
             return res.status(400).json({ message: "please enter email and password" })
         }
@@ -49,7 +51,7 @@ const userLogin = async (req, res) => {
         }
         const matchedpassword = await bcrypt.compare(password, user.password)
         if (!matchedpassword) {
-            return res.status(400).json({ message: "please enter email and password" })
+            return res.status(400).json({ message: "please enter correct password" })
         }
         const token = generateToken(user);
         const updateduser = await userModel.findByIdAndUpdate(user.id,
@@ -65,38 +67,44 @@ const userLogin = async (req, res) => {
 
 
 
-const editUser= async(req,res)=>{
-    try{
-        const loginUser= req.user._id
-
-      const {name,password,confirm_password}= req.body
-      
-          let imageUrl = null;
-    if (req.file) {
+const editUser = async (req, res) => {
+    try {
+        const loginUser = req.user._id
+        const { name, password, confirm_password } = req.body
+        let hashesdPassword;
+        let imageUrl = null;
+        if (req.file) {
             newImage = req.file.path;
+            const result = await cloudinary.uploader.upload(newImage);
+            imageUrl = result.secure_url;
+            fs.unlink(newImage, (err) => {
+                if (err) console.error("Failed to delete local file:", err);
+                else console.log("Local file deleted:", newImage);
+            });
+        }
+        if (!!password && !!confirm_password) {
+            if (password !== confirm_password) {
+                return res.status(400).json({ message: "Password and confirfpasswors should be same" })
+            }
+            hashesdPassword = await bcrypt.hash(password, 10)
+        }
+        const updateData = {
+            name,
+            image: imageUrl,
+        };
 
-      const result = await cloudinary.uploader.upload(newImage);
-      imageUrl = result.secure_url;
-
-    
-    }
-
-    if(password!==confirm_password){
-        return res.status(400).json({message:"Password and confirfpasswors should be same"})
-    }
-              const hashesdPassword = await bcrypt.hash(password, 10)
-
-        const user= await userModel.findByIdAndUpdate(loginUser,{
-            name:name,
-            image:imageUrl,
-            password:hashesdPassword
-
-
-
-        }, { new: true })
-
-        return res.status(200).json({ message: "userUpdated succesfully", user })
-
+        if (hashesdPassword) {
+            updateData.password = hashesdPassword;
+        }
+        const user = await userModel.findByIdAndUpdate(
+            loginUser,
+            updateData,
+            {
+                new: true,
+                projection: { password: 0, deviceInfo: 0 }
+            }
+        );
+        return res.status(200).json({ message: "userUpdated succesfully", data: user })
     }
     catch (err) {
         console.log(err)
@@ -148,7 +156,7 @@ const logout = async (req, res) => {
         return res.status(400).json({ message: err.message || "Internal server error" })
     }
 }
-  
+
 
 module.exports = { createUser, userLogin, editUser, logout, socialLogin };
 
