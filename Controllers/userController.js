@@ -41,7 +41,6 @@ const createUser = async (req, res) => {
 const userLogin = async (req, res) => {
     try {
         const { email, password, deviceInfo } = req.body
-        console.log(req.body, "data==>", !email, !password)
         if (!email || !password) {
             return res.status(400).json({ message: "please enter email and password" })
         }
