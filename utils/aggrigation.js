@@ -70,7 +70,8 @@ const getRecentChats = async (userId, page = 1, limit = 10) => {
                 user: {
                     _id: "$userDetails._id",
                     name: "$userDetails.name",
-                    email: "$userDetails.email"
+                    email: "$userDetails.email",
+                    image: "$userDetails.image"
                 }
             }
         },
