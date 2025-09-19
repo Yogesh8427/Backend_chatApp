@@ -126,7 +126,7 @@ const socialLogin = async (req, res) => {
         let token;
         let user = await userModel.findOne({ email });
         if (user) {
-            user = await userModel.findByIdAndUpdate(user._id, { $set: { deviceInfo, image: picture } },
+            user = await userModel.findByIdAndUpdate(user._id, { $set: { deviceInfo } },
                 { new: true, select: "-password" });
             token = generateToken(user);
         } else {
